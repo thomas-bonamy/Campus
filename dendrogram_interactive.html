@@ -1,0 +1,99 @@
+﻿<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Dendrogramme interactif — V3</title>
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<style>
+:root { --text:#3a3a3a; --muted:#6e7583; --main:#020091; --ter:#c9ced6; --rowbg:#eef1f4; }
+* { box-sizing:border-box; }
+body { margin:0; padding:24px; font-family:system-ui,-apple-system,sans-serif; color:var(--text); background:#fff; }
+.h1 { margin:0 0 6px; font-size:28px; font-weight:800; color:var(--main); }
+.sub { margin:0 0 14px; color:var(--muted); font-weight:700; font-size:13px; }
+.wrap { border:1px solid rgba(201,206,214,0.9); border-radius:14px; overflow:auto; background:#fff; }
+#chart { width:100%; min-width:1200px; }
+.note { margin-top:10px; color:var(--muted); font-size:12px; font-weight:600; line-height:1.5; }
+.legend-bar { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0; position:relative; }
+.legend-item { display:flex; align-items:center; gap:5px; font-size:11px; font-weight:700; color:var(--text); cursor:pointer; padding:4px 8px; border-radius:6px; transition:background 0.15s; position:relative; }
+.legend-item:hover { background:var(--rowbg); }
+.legend-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+.popover { display:none; position:absolute; top:100%; left:0; z-index:100; background:#fff; border:1px solid var(--ter); border-radius:10px; padding:12px 16px; box-shadow:0 8px 24px rgba(0,0,0,0.12); min-width:340px; max-width:520px; margin-top:6px; }
+.legend-item:hover .popover { display:block; }
+.popover-title { font-size:13px; font-weight:800; margin-bottom:6px; }
+.popover-list { font-size:11px; font-weight:500; color:var(--muted); line-height:1.7; }
+</style></head><body>
+<div class="h1">Dendrogramme</div>
+<div class="sub">Clustering hiérarchique — N=27 (1 participant exclu) — 9 clusters — Regroupement par moyenne (UPGMA) — Corr. cophénétique : 0.74</div>
+<div class="legend-bar" id="legend"></div>
+<div class="wrap"><div id="chart"></div></div>
+<div class="note">
+  Distance = 1 − (similarité / 100). Plus deux cartes fusionnent tôt (à gauche), plus elles sont similaires.<br>
+  Participant 468972545 exclu (56 cartes dans 1 seule catégorie). Méthode : regroupement par moyenne (UPGMA).<br>
+  Les noms des rubriques reprennent le vocabulaire des participants quand un consensus existe. Sinon, choix éditorial basé sur le contenu des cartes.<br>
+  Survolez une carte pour voir sa rubrique. Survolez un nom de rubrique dans la légende pour voir toutes ses cartes.
+</div>
+<script>
+const DATA = {"traces_x": [[0.0, 0.18181818181818177, 0.18181818181818177, 0.0], [0.0, 0.33300395256917, 0.33300395256917, 0.18181818181818177], [0.0, 0.38095238095238093, 0.38095238095238093, 0.0], [0.0, 0.5952380952380953, 0.5952380952380953, 0.38095238095238093], [0.0, 0.1428571428571429, 0.1428571428571429, 0.0], [0.0, 0.41883116883116883, 0.41883116883116883, 0.1428571428571429], [0.0, 0.5289541376497898, 0.5289541376497898, 0.41883116883116883], [0.5952380952380953, 0.8604445071836376, 0.8604445071836376, 0.5289541376497898], [0.0, 0.2727272727272727, 0.2727272727272727, 0.0], [0.0, 0.4782608695652174, 0.4782608695652174, 0.0], [0.2727272727272727, 0.5741106719367589, 0.5741106719367589, 0.4782608695652174], [0.0, 0.4545454545454546, 0.4545454545454546, 0.0], [0.0, 0.2727272727272727, 0.2727272727272727, 0.0], [0.0, 0.4673913043478261, 0.4673913043478261, 0.2727272727272727], [0.4545454545454546, 0.6389986824769434, 0.6389986824769434, 0.4673913043478261], [0.5741106719367589, 0.6701745718050065, 0.6701745718050065, 0.6389986824769434], [0.0, 0.5909090909090908, 0.5909090909090908, 0.0], [0.0, 0.7045454545454546, 0.7045454545454546, 0.5909090909090908], [0.0, 0.30434782608695654, 0.30434782608695654, 0.0], [0.0, 0.4545454545454546, 0.4545454545454546, 0.0], [0.0, 0.21739130434782605, 0.21739130434782605, 0.0], [0.0, 0.4782608695652174, 0.4782608695652174, 0.21739130434782605], [0.0, 0.5592885375494071, 0.5592885375494071, 0.4782608695652174], [0.4545454545454546, 0.6363636363636362, 0.6363636363636362, 0.5592885375494071], [0.30434782608695654, 0.7257905138339921, 0.7257905138339921, 0.6363636363636362], [0.7045454545454546, 0.7480923364075538, 0.7480923364075538, 0.7257905138339921], [0.6701745718050065, 0.7940771349862259, 0.7940771349862259, 0.7480923364075538], [0.0, 0.36363636363636365, 0.36363636363636365, 0.0], [0.0, 0.5, 0.5, 0.36363636363636365], [0.0, 0.3913043478260869, 0.3913043478260869, 0.0], [0.0, 0.5543478260869565, 0.5543478260869565, 0.3913043478260869], [0.5, 0.5801127214170693, 0.5801127214170693, 0.5543478260869565], [0.0, 0.25, 0.25, 0.0], [0.0, 0.5652173913043479, 0.5652173913043479, 0.25], [0.0, 0.5, 0.5, 0.0], [0.0, 0.5454545454545454, 0.5454545454545454, 0.0], [0.5, 0.6304347826086957, 0.6304347826086957, 0.5454545454545454], [0.5652173913043479, 0.6553442028985508, 0.6553442028985508, 0.6304347826086957], [0.0, 0.7300556586270872, 0.7300556586270872, 0.6553442028985508], [0.0, 0.5652173913043479, 0.5652173913043479, 0.0], [0.0, 0.2916666666666665, 0.2916666666666665, 0.0], [0.0, 0.4791304347826087, 0.4791304347826087, 0.2916666666666665], [0.5652173913043479, 0.6324110671936759, 0.6324110671936759, 0.4791304347826087], [0.0, 0.6545454545454545, 0.6545454545454545, 0.6324110671936759], [0.0, 0.4545454545454546, 0.4545454545454546, 0.0], [0.0, 0.34782608695652173, 0.34782608695652173, 0.0], [0.0, 0.4545454545454546, 0.4545454545454546, 0.34782608695652173], [0.0, 0.5434782608695653, 0.5434782608695653, 0.4545454545454546], [0.4545454545454546, 0.6761363636363636, 0.6761363636363636, 0.5434782608695653], [0.6545454545454545, 0.701306543697848, 0.701306543697848, 0.6761363636363636], [0.7300556586270872, 0.7896809613997112, 0.7896809613997112, 0.701306543697848], [0.5801127214170693, 0.8167470983123157, 0.8167470983123157, 0.7896809613997112], [0.7940771349862259, 0.8356232028840724, 0.8356232028840724, 0.8167470983123157], [0.8604445071836376, 0.8837771059618209, 0.8837771059618209, 0.8356232028840724], [0.33300395256917, 0.8942378490163561, 0.8942378490163561, 0.8837771059618209]], "traces_y": [[15.0, 15.0, 25.0, 25.0], [5.0, 5.0, 20.0, 20.0], [45.0, 45.0, 55.0, 55.0], [35.0, 35.0, 50.0, 50.0], [85.0, 85.0, 95.0, 95.0], [75.0, 75.0, 90.0, 90.0], [65.0, 65.0, 82.5, 82.5], [42.5, 42.5, 73.75, 73.75], [105.0, 105.0, 115.0, 115.0], [125.0, 125.0, 135.0, 135.0], [110.0, 110.0, 130.0, 130.0], [145.0, 145.0, 155.0, 155.0], [175.0, 175.0, 185.0, 185.0], [165.0, 165.0, 180.0, 180.0], [150.0, 150.0, 172.5, 172.5], [120.0, 120.0, 161.25, 161.25], [205.0, 205.0, 215.0, 215.0], [195.0, 195.0, 210.0, 210.0], [225.0, 225.0, 235.0, 235.0], [245.0, 245.0, 255.0, 255.0], [285.0, 285.0, 295.0, 295.0], [275.0, 275.0, 290.0, 290.0], [265.0, 265.0, 282.5, 282.5], [250.0, 250.0, 273.75, 273.75], [230.0, 230.0, 261.875, 261.875], [202.5, 202.5, 245.9375, 245.9375], [140.625, 140.625, 224.21875, 224.21875], [315.0, 315.0, 325.0, 325.0], [305.0, 305.0, 320.0, 320.0], [345.0, 345.0, 355.0, 355.0], [335.0, 335.0, 350.0, 350.0], [312.5, 312.5, 342.5, 342.5], [385.0, 385.0, 395.0, 395.0], [375.0, 375.0, 390.0, 390.0], [405.0, 405.0, 415.0, 415.0], [425.0, 425.0, 435.0, 435.0], [410.0, 410.0, 430.0, 430.0], [382.5, 382.5, 420.0, 420.0], [365.0, 365.0, 401.25, 401.25], [455.0, 455.0, 465.0, 465.0], [485.0, 485.0, 495.0, 495.0], [475.0, 475.0, 490.0, 490.0], [460.0, 460.0, 482.5, 482.5], [445.0, 445.0, 471.25, 471.25], [505.0, 505.0, 515.0, 515.0], [545.0, 545.0, 555.0, 555.0], [535.0, 535.0, 550.0, 550.0], [525.0, 525.0, 542.5, 542.5], [510.0, 510.0, 533.75, 533.75], [458.125, 458.125, 521.875, 521.875], [383.125, 383.125, 490.0, 490.0], [327.5, 327.5, 436.5625, 436.5625], [182.421875, 182.421875, 382.03125, 382.03125], [58.125, 58.125, 282.2265625, 282.2265625], [12.5, 12.5, 170.17578125, 170.17578125]], "labels": ["Aïe Aïe IA : Le jeu pour démystifier l'intelligence artificielle", "Découvrir les IA génératives", "Intelligence artificielle pour et par les enseignants", "Protection de la vie privée dans le monde numérique", "Agir pour contribuer à ma sécurité numérique et à celle de mon organisation", "Renforcer la sécurité des systèmes d'information de mon organisation", "Écoconception des services numériques", "Mettre en place une démarche numérique responsable", "L’impact environnemental du numérique : comment agir ?", "Se sensibiliser aux impacts environnementaux du numérique", "Analyser une situation dans le cadre d'une mission de conseil en transformation numérique", "Bien mener la conception d'un service numérique", "Gestion des achats et fournisseurs dans les projets numériques", "Gestion responsable d’un projet numérique", "Groupes interministériels de co-développement", "Travailler en équipe et mobiliser l'intelligence collective", "Le mode produit et les startups d'Etat", "Construire et communiquer sa vision produit", "L'organisation en mode produit", "Identité numérique", "Acculturation aux nouvelles technologies numériques", "Service maximum : mieux faire du design de services publics numériques", "Formation Alpha : Créer des services publics innovants (distanciel)", "Formation Alpha : Créer des services publics innovants (présentiel)", "Améliorer la pertinence de vos services en ligne grâce à la recherche utilisateur", "Construire une application avec une approche centrée utilisateur", "Rencontres du Numérique Public", "Démarches-Simplifiées", "Numérique et relation à l'usager", "Simplifier l'information aux usagers des services publics numériques", "Jeu Inclusif", "L’accessibilité numérique des sites et applications web : Game of code", "Vérifier l'accessibilité", "L'accessibilité numérique selon votre métier", "Créer un pdf (vraiment) accessible", "L'accessibilité numérique dans la pratique", "Le service public de la diffusion du droit : LEGIFRANCE", "Offre de formations logiciels libres", "Les outils numériques interministériels", "Maîtriser les outils de visioconférence de La Suite numérique : Wébinaire et Webconférence de l'État", "La doctrine Cloud au centre de l’Etat", "S'approprier la charte graphique de la marque de l'Etat", "Le numérique au service de la transformation des politiques publiques", "Le numérique dans tous ses États", "Kit Datacculturation", "Initiation au Cloud NUBO", "Interopérabilité : cours introductif", "Data et API", "Découverte de l'Open Data", "Guide 1 : Introduction à l'Open Data", "Gestion des infrastructures avec Terraform", "L'outil de gestion des textes normatifs de leur rédaction jusqu'à leur publication au JO : SOLON", "Cycle approfondi du numérique - CaNUM (ENM)", "Guide 2 : Traitement et analyse de données", "Formations R : Faire du logiciel R une nouvelle opportunité dans le traitement des données", "Formations et tutoriels sur la datascience et le traitement statistique"], "clusters": [1, 1, 1, 9, 9, 9, 8, 8, 8, 8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 9, 7, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 7, 7, 7, 7, 7, 7, 7, 7, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6], "leaf_y": [5, 15, 25, 35, 45, 55, 65, 75, 85, 95, 105, 115, 125, 135, 145, 155, 165, 175, 185, 195, 205, 215, 225, 235, 245, 255, 265, 275, 285, 295, 305, 315, 325, 335, 345, 355, 365, 375, 385, 395, 405, 415, 425, 435, 445, 455, 465, 475, 485, 495, 505, 515, 525, 535, 545, 555], "leaf_colors": ["#2563EB", "#2563EB", "#2563EB", "#EA580C", "#EA580C", "#EA580C", "#65A30D", "#65A30D", "#65A30D", "#65A30D", "#DC2626", "#DC2626", "#DC2626", "#DC2626", "#DC2626", "#DC2626", "#DC2626", "#DC2626", "#DC2626", "#EA580C", "#065A82", "#D97706", "#D97706", "#D97706", "#D97706", "#D97706", "#D97706", "#D97706", "#D97706", "#D97706", "#7C3AED", "#7C3AED", "#7C3AED", "#7C3AED", "#7C3AED", "#7C3AED", "#065A82", "#065A82", "#065A82", "#065A82", "#065A82", "#065A82", "#065A82", "#065A82", "#DB2777", "#DB2777", "#DB2777", "#DB2777", "#DB2777", "#DB2777", "#DB2777", "#DB2777", "#DB2777", "#DB2777", "#DB2777", "#DB2777"], "color_map": {"1": "#2563EB", "2": "#DC2626", "4": "#D97706", "5": "#7C3AED", "6": "#DB2777", "7": "#065A82", "8": "#65A30D", "9": "#EA580C"}, "cluster_names": {"1": "Intelligence artificielle", "2": "Gestion de projets numériques", "4": "Design et relation usager", "5": "Accessibilité numérique", "6": "Données et open data", "7": "Environnement numérique de l'État", "8": "Numérique responsable", "9": "Sécurité numérique"}};
+const legendEl = document.getElementById("legend");
+Object.entries(DATA.color_map).forEach(([cid, color]) => {
+  const cidInt = parseInt(cid);
+  const cardIndices = DATA.clusters.map((c,i) => c===cidInt ? i : -1).filter(i => i>=0);
+  const name = DATA.cluster_names[cid];
+  const cardList = cardIndices.map(i => "\u2022 " + DATA.labels[i]).join("<br>");
+  const item = document.createElement("div");
+  item.className = "legend-item";
+  item.innerHTML = '<div class="legend-dot" style="background:'+color+'"></div>' + name + ' ('+cardIndices.length+')' +
+    '<div class="popover"><div class="popover-title" style="color:'+color+'">'+name+' \u2014 '+cardIndices.length+' cartes</div><div class="popover-list">'+cardList+'</div></div>';
+  legendEl.appendChild(item);
+});
+const LABEL_X = -0.02;
+const branchTraces = DATA.traces_x.map((tx, i) => ({
+  x: tx, y: DATA.traces_y[i], mode: "lines",
+  line: { color: "rgba(2,0,145,0.35)", width: 1.2 },
+  hoverinfo: "skip", showlegend: false,
+}));
+const leafTrace = {
+  x: new Array(DATA.labels.length).fill(LABEL_X),
+  y: DATA.leaf_y, mode: "markers+text", type: "scatter",
+  text: DATA.labels, textposition: "middle left",
+  textfont: { size: 10, color: DATA.leaf_colors, family: "system-ui, sans-serif" },
+  marker: { size: 6, color: DATA.leaf_colors, line: { width: 1.5, color: "#fff" } },
+  cliponaxis: false, hoverinfo: "text",
+  hovertext: DATA.labels.map((l, i) => {
+    const cid = DATA.clusters[i];
+    return "<b>" + l + "</b><br>Rubrique : " + DATA.cluster_names[String(cid)];
+  }),
+  showlegend: false,
+};
+const maxY = 570;
+const thresholds = [
+  { dist: 0.4, label: "60% similarité", color: "#065A82", dash: "dot" },
+  { dist: 0.5, label: "50% similarité", color: "#16A34A", dash: "dash" },
+  { dist: 0.6, label: "40% similarité", color: "#D97706", dash: "dashdot" },
+];
+const shapes = thresholds.map(t => ({
+  type:"line", x0:t.dist, x1:t.dist, y0:-5, y1:maxY,
+  line: { color:t.color, width:1.5, dash:t.dash },
+}));
+const annotations = thresholds.map(t => ({
+  x: t.dist, y: maxY - 2, xref:"x", yref:"y",
+  text: t.label, font: { size: 9, color: t.color, family: "system-ui" },
+  showarrow: false, textangle: -90, xanchor: "right", yanchor: "top",
+}));
+const layout = {
+  xaxis: {
+    title: { text: "\u2190 Plus similaires          Distance (1 \u2212 similarité / 100)          Moins similaires \u2192", font: { size: 11, family: "system-ui", color: "#6e7583" } },
+    range: [-0.65, 1.05], zeroline: false, gridcolor: "rgba(201,206,214,0.3)",
+  },
+  yaxis: { showticklabels: false, zeroline: false, range: [-5, maxY], gridcolor: "rgba(201,206,214,0.15)" },
+  shapes: shapes, annotations: annotations,
+  margin: { l: 20, r: 20, t: 20, b: 50 },
+  hovermode: "closest", showlegend: false,
+  plot_bgcolor: "#fff", paper_bgcolor: "#fff",
+  height: 1568,
+};
+Plotly.newPlot("chart", [...branchTraces, leafTrace], layout, {
+  responsive: true, displayModeBar: true,
+  modeBarButtonsToRemove: ["lasso2d","select2d"],
+  displaylogo: false, scrollZoom: true, doubleClick: "reset",
+});
+</script></body></html>
